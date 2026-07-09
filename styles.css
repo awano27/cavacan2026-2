@@ -123,23 +123,6 @@ ol { margin: 0; padding: 0; list-style: none; }
   line-height: .92;
   font-weight: 700;
 }
-.intro .lead {
-  max-width: 760px;
-  margin: 32px 0 0;
-  font-size: 30px;
-  line-height: 1.35;
-  font-weight: 700;
-}
-.intro .flow {
-  display: inline-flex;
-  margin: 28px 0 0;
-  padding: 14px 18px;
-  border: 1px solid rgba(245, 240, 228, .28);
-  border-radius: 8px;
-  color: rgba(245, 240, 228, .86);
-  background: rgba(255, 255, 255, .07);
-  font-weight: 700;
-}
 .cover-slide {
   position: relative;
   z-index: 2;
@@ -257,8 +240,20 @@ ol { margin: 0; padding: 0; list-style: none; }
   gap: 16px;
   min-height: 620px;
 }
+.may-cover-grid.single-photo {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
 .may-cover-grid .hero {
   grid-row: 1 / span 3;
+}
+.may-cover-grid.single-photo .hero {
+  grid-row: auto;
+  min-height: 660px;
+}
+.may-cover-grid.single-photo .hero img {
+  object-fit: contain;
+  background: #102219;
 }
 .july-hero {
   position: relative;
@@ -285,6 +280,16 @@ ol { margin: 0; padding: 0; list-style: none; }
 }
 .grid-4 .photo-card {
   min-height: 560px;
+}
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, minmax(250px, 1fr));
+  gap: 18px;
+  padding-top: 28px;
+}
+.grid-6 .photo-card {
+  min-height: 270px;
 }
 .feature-grid {
   display: grid;
@@ -446,11 +451,9 @@ ol { margin: 0; padding: 0; list-style: none; }
     padding: 44px 20px 72px;
   }
   .intro h1, .thanks h2 { font-size: 52px; }
-  .intro .lead { font-size: 23px; }
-  .intro .flow { display: block; }
   .slide-head { padding: 42px 20px 0; }
   .slide-head h2, .section-title h2 { font-size: 34px; }
-  .hippo-pair, .hippo-strip, .grid-4, .feature-grid, .talk-grid, .social-grid, .close-photos, .july-hero, .may-cover-grid {
+  .hippo-pair, .hippo-strip, .grid-4, .grid-6, .feature-grid, .talk-grid, .social-grid, .close-photos, .july-hero, .may-cover-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     padding-left: 20px;
@@ -479,7 +482,6 @@ ol { margin: 0; padding: 0; list-style: none; }
 
 @media (max-width: 640px) {
   .intro h1, .thanks h2 { font-size: 42px; }
-  .intro .lead { font-size: 20px; }
   .slide-head h2, .section-title h2 { font-size: 28px; }
   .photo-card { min-height: 240px; }
   .lightbox { padding: 18px; }
