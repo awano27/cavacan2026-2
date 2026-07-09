@@ -2,76 +2,110 @@
   const deck = document.querySelector(".deck");
   const slides = [...document.querySelectorAll(".slide")];
   const dots = [...document.querySelectorAll(".deck-nav .dot")];
+  const lightbox = document.getElementById("lightbox");
+  const lbImg = lightbox.querySelector(".lb-img");
+  const lbCap = lightbox.querySelector(".lb-cap");
+  const closeBtn = lightbox.querySelector(".lb-close");
 
-  // ---- Active dot via IntersectionObserver ----
-  const io = new IntersectionObserver(
-    entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting && e.intersectionRatio >= 0.55) {
-          const idx = Number(e.target.dataset.index) - 1;
-          dots.forEach((d, i) => d.classList.toggle("is-active", i === idx));
-        }
-      });
-    },
-    { root: deck, threshold: [0.55] }
-  );
-  slides.forEach(s => io.observe(s));
-
-  // ---- Keyboard nav ----
-  const goto = (i) => {
-    const t = slides[Math.max(0, Math.min(slides.length - 1, i))];
-    if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+  const setActive = index => {
+    dots.forEach((dot, i) => dot.classList.toggle("is-active", i === index));
   };
+
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+            setActive(Number(entry.target.dataset.index) - 1);
+          }
+        });
+      },
+      { root: deck, threshold: [0.55] }
+    );
+    slides.forEach(slide => io.observe(slide));
+  }
+  setActive(0);
+
   const currentIndex = () => {
-    let best = 0, bestTop = Infinity;
-    slides.forEach((s, i) => {
-      const r = s.getBoundingClientRect();
-      const dist = Math.abs(r.top);
-      if (dist < bestTop) { bestTop = dist; best = i; }
+    let best = 0;
+    let bestDistance = Infinity;
+    slides.forEach((slide, index) => {
+      const distance = Math.abs(slide.getBoundingClientRect().top);
+      if (distance < bestDistance) {
+        best = index;
+        bestDistance = distance;
+      }
     });
     return best;
   };
-  window.addEventListener("keydown", e => {
-    if (lb.classList.contains("is-open")) {
-      if (e.key === "Escape") closeLB();
-      return;
-    }
-    if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
-      e.preventDefault(); goto(currentIndex() + 1);
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") {
-      e.preventDefault(); goto(currentIndex() - 1);
-    } else if (e.key === "Home") {
-      e.preventDefault(); goto(0);
-    } else if (e.key === "End") {
-      e.preventDefault(); goto(slides.length - 1);
-    }
-  });
 
-  // ---- Lightbox ----
-  const lb = document.getElementById("lightbox");
-  const lbImg = lb.querySelector(".lb-img");
-  const lbCap = lb.querySelector(".lb-cap");
-  const closeBtn = lb.querySelector(".lb-close");
-
-  const openLB = (src, cap) => {
-    lbImg.src = src;
-    lbCap.textContent = cap || "";
-    lb.classList.add("is-open");
-    lb.setAttribute("aria-hidden", "false");
-  };
-  const closeLB = () => {
-    lb.classList.remove("is-open");
-    lb.setAttribute("aria-hidden", "true");
-    lbImg.src = "";
+  const goTo = index => {
+    const target = slides[Math.max(0, Math.min(slides.length - 1, index))];
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  document.querySelectorAll(".g").forEach(fig => {
-    fig.addEventListener("click", () => {
-      const img = fig.querySelector("img");
-      const cap = fig.querySelector("figcaption");
-      if (img) openLB(img.src, cap ? cap.textContent : "");
+  document.querySelectorAll(".deck-nav a").forEach((link, index) => {
+    link.addEventListener("click", event => {
+      event.preventDefault();
+      history.replaceState(null, "", link.getAttribute("href"));
+      goTo(index);
     });
   });
-  closeBtn.addEventListener("click", closeLB);
-  lb.addEventListener("click", e => { if (e.target === lb) closeLB(); });
+
+  if (window.location.hash) {
+    const target = document.querySelector(window.location.hash);
+    if (target?.classList.contains("slide")) {
+      requestAnimationFrame(() => target.scrollIntoView({ behavior: "auto", block: "start" }));
+    }
+  }
+
+  const openLightbox = (img, caption) => {
+    lbImg.src = img.currentSrc || img.src;
+    lbImg.alt = img.alt || "";
+    lbCap.textContent = caption || "";
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+  };
+
+  const closeLightbox = () => {
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    lbImg.removeAttribute("src");
+  };
+
+  document.querySelectorAll("[data-lightbox]").forEach(item => {
+    item.addEventListener("click", () => {
+      const img = item.querySelector("img");
+      const caption = item.querySelector("figcaption")?.textContent || "";
+      if (img) openLightbox(img, caption);
+    });
+  });
+
+  closeBtn.addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", event => {
+    if (event.target === lightbox) closeLightbox();
+  });
+
+  window.addEventListener("keydown", event => {
+    if (lightbox.classList.contains("is-open")) {
+      if (event.key === "Escape") closeLightbox();
+      return;
+    }
+    if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(event.key)) {
+      event.preventDefault();
+      goTo(currentIndex() + 1);
+    }
+    if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      goTo(currentIndex() - 1);
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      goTo(0);
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      goTo(slides.length - 1);
+    }
+  });
 })();
